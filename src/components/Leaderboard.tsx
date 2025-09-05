@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, limit, where, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, limit, getDocs } from 'firebase/firestore';
 import type { Player } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -107,7 +107,7 @@ export function Leaderboard() {
   return (
     <div className="h-full overflow-y-auto">
         <ul className="space-y-2">
-          {players.map((player, index) => (
+          {players.slice(0, 7).map((player, index) => (
             <PlayerRow 
                 key={player.id} 
                 player={player} 
@@ -115,6 +115,18 @@ export function Leaderboard() {
                 isCurrentUser={user?.id === player.id}
             />
           ))}
+          {players.length > 7 && (
+             <div className="h-full overflow-y-auto">
+                {players.slice(7).map((player, index) => (
+                    <PlayerRow 
+                        key={player.id} 
+                        player={player} 
+                        rank={index + 8}
+                        isCurrentUser={user?.id === player.id}
+                    />
+                ))}
+             </div>
+          )}
            {userPlayer && !isUserInTop10 && userRank !== null && (
             <>
                 <li className="flex justify-center items-center my-2">
