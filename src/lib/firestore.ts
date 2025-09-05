@@ -15,3 +15,15 @@ export const updateUserScore = async (userId: string, newScore: number) => {
     console.error("Error updating score: ", error);
   }
 };
+
+export const updatePlayerName = async (userId: string, newName: string) => {
+  if (!userId || !newName) return;
+  const playerDocRef = doc(db, 'players', userId);
+  try {
+    await updateDoc(playerDocRef, {
+      name: newName,
+    });
+  } catch (error) {
+    console.error("Error updating player name: ", error);
+  }
+};

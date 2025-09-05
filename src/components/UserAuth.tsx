@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { getAuth, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -29,6 +29,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { updatePlayerName } from '@/lib/firestore';
+
 
 export function UserAuth() {
   const { user, loading, isGuest, setGuest } = useAuth();
@@ -38,6 +40,16 @@ export function UserAuth() {
   const [password, setPassword] = useState('');
   const [isSignUpOpen, setSignUpOpen] = useState(false);
   const [isLoginOpen, setLoginOpen] = useState(false);
+  const [isUsernameModalOpen, setUsernameModalOpen] = useState(false);
+  const [username, setUsername] = useState('');
+
+
+  useEffect(() => {
+    // Check if the user's name is their email, which we use as a default.
+    if (user && user.name === user.email) {
+      setUsernameModalOpen(true);
+    }
+  }, [user]);
 
   const handleAuthError = (error: AuthError) => {
     console.error("Authentication failed:", error);
@@ -55,6 +67,24 @@ export function UserAuth() {
       description: description,
     });
   };
+  
+    const handleUsernameSubmit = async () => {
+    if (!username.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Username cannot be empty.',
+      });
+      return;
+    }
+    if (user) {
+      await updatePlayerName(user.id, username);
+      setUsernameModalOpen(false);
+      toast({
+        title: 'Username updated!',
+      });
+    }
+  };
+
 
   const handleGoogleSignIn = async () => {
     try {
@@ -133,106 +163,133 @@ export function UserAuth() {
      )
   }
 
-  if (!user) {
-    return (
-      <div className="flex flex-col gap-2">
-        <Button className="w-full" onClick={handleGoogleSignIn} variant="default">
-          <LogIn className="mr-2 h-4 w-4" /> Login with Google
-        </Button>
-        <Dialog open={isLoginOpen} onOpenChange={setLoginOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full" variant="secondary">
-              <LogIn className="mr-2 h-4 w-4" /> Login with Email
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Login</DialogTitle>
-              <DialogDescription>
-                Enter your credentials to log in.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">
-                  Email
-                </Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password" /* autocomplete="current-password" */ className="text-right">
-                  Password
-                </Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="col-span-3" />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" onClick={handleEmailLogin}>Login</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <Dialog open={isSignUpOpen} onOpenChange={setSignUpOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full" variant="outline">
-              <UserPlus className="mr-2 h-4 w-4" /> Sign Up with Email
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Sign Up</DialogTitle>
-              <DialogDescription>
-                Create an account to save your score and compete on the leaderboard.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email-signup" className="text-right">
-                  Email
-                </Label>
-                <Input id="email-signup" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password-signup" /* autocomplete="new-password" */ className="text-right">
-                  Password
-                </Label>
-                <Input id="password-signup" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="col-span-3" />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" onClick={handleSignUp}>Sign Up</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <Button className="w-full" onClick={handleGuestLogin} variant="outline">
-            <Ghost className="mr-2 h-4 w-4" /> Play as Guest
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full justify-start h-14">
-            <div className="flex items-center gap-4">
-              <Avatar>
-                <AvatarFallback><UserIcon /></AvatarFallback>
-              </Avatar>
-              <div className="text-left overflow-hidden">
-                <p className="font-semibold truncate">{user.name}</p>
-                <p className="text-sm text-muted-foreground">Score: {user.score}</p>
+    <>
+      {!user ? (
+        <div className="flex flex-col gap-2">
+          <Button className="w-full" onClick={handleGoogleSignIn} variant="default">
+            <LogIn className="mr-2 h-4 w-4" /> Login with Google
+          </Button>
+          <Dialog open={isLoginOpen} onOpenChange={setLoginOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full" variant="secondary">
+                <LogIn className="mr-2 h-4 w-4" /> Login with Email
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Login</DialogTitle>
+                <DialogDescription>
+                  Enter your credentials to log in.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="email" className="text-right">
+                    Email
+                  </Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="password" /* autocomplete="current-password" */ className="text-right">
+                    Password
+                  </Label>
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="col-span-3" />
+                </div>
               </div>
+              <DialogFooter>
+                <Button type="submit" onClick={handleEmailLogin}>Login</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isSignUpOpen} onOpenChange={setSignUpOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full" variant="outline">
+                <UserPlus className="mr-2 h-4 w-4" /> Sign Up with Email
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Sign Up</DialogTitle>
+                <DialogDescription>
+                  Create an account to save your score and compete on the leaderboard.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="email-signup" className="text-right">
+                    Email
+                  </Label>
+                  <Input id="email-signup" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="password-signup" /* autocomplete="new-password" */ className="text-right">
+                    Password
+                  </Label>
+                  <Input id="password-signup" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="col-span-3" />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit" onClick={handleSignUp}>Sign Up</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Button className="w-full" onClick={handleGuestLogin} variant="outline">
+              <Ghost className="mr-2 h-4 w-4" /> Play as Guest
+          </Button>
+        </div>
+      ) : (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="w-full justify-start h-14">
+                <div className="flex items-center gap-4">
+                  <Avatar>
+                    <AvatarFallback><UserIcon /></AvatarFallback>
+                  </Avatar>
+                  <div className="text-left overflow-hidden">
+                    <p className="font-semibold truncate">{user.name}</p>
+                    <p className="text-sm text-muted-foreground">Score: {user.score}</p>
+                  </div>
+                </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      <Dialog open={isUsernameModalOpen} onOpenChange={setUsernameModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Welcome! Choose a username</DialogTitle>
+            <DialogDescription>
+              This name will be displayed on the leaderboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="username" className="text-right">
+                Username
+              </Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="col-span-3"
+              />
             </div>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleUsernameSubmit}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

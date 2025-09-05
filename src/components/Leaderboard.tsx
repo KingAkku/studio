@@ -8,6 +8,14 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User } from 'lucide-react';
 
+const dummyPlayers: Player[] = [
+  { id: '1', name: 'Mystic Seeker', email: '', score: 1500 },
+  { id: '2', name: 'Shadow Striker', email: '', score: 1420 },
+  { id: '3', name: 'Silent Phantom', email: '', score: 1350 },
+  { id: '4', name: 'Crimson Ghost', email: '', score: 1280 },
+  { id: '5', name: 'Veiled Vixen', email: '', score: 1100 },
+];
+
 export function Leaderboard() {
   const [players, setPlayers] = useState<Player[]>([]);
   const { user } = useAuth();
@@ -20,7 +28,15 @@ export function Leaderboard() {
       querySnapshot.forEach((doc) => {
         playersData.push({ id: doc.id, ...doc.data() } as Player);
       });
-      setPlayers(playersData);
+      if (playersData.length > 0) {
+        setPlayers(playersData);
+      } else {
+        setPlayers(dummyPlayers);
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching leaderboard: ", error);
+      setPlayers(dummyPlayers);
       setLoading(false);
     });
 

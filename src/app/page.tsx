@@ -55,6 +55,20 @@ export default function Home() {
     }, 1500); // Duration of the overlay animation
 
   }, [user, isGuest, toast]);
+  
+    useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'Space' && !isGameActive && !isProcessing) {
+        event.preventDefault();
+        handleNewGame();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isGameActive, isProcessing, handleNewGame]);
 
   const handleCanvasClick = (x: number, y: number) => {
     if (!isGameActive || !sundariPosition || isProcessing || dots.length > 0) return;
