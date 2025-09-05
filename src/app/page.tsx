@@ -39,7 +39,12 @@ export default function Home() {
     const canvasWidth = mainContentRef.current.clientWidth;
     const canvasHeight = mainContentRef.current.clientHeight;
     const currentCanvasArea = canvasWidth * canvasHeight;
-    const scaleFactor = Math.sqrt(currentCanvasArea / BASE_CANVAS_AREA);
+    let scaleFactor = Math.sqrt(currentCanvasArea / BASE_CANVAS_AREA);
+
+    // Further reduce size on mobile
+    if (isMobile) {
+      scaleFactor *= 0.7;
+    }
 
     const responsiveWidth = Math.max(50, BASE_SUNDARI_WIDTH * scaleFactor);
     const responsiveHeight = Math.max(75, BASE_SUNDARI_HEIGHT * scaleFactor);
@@ -52,7 +57,7 @@ export default function Home() {
         y: responsiveHeight * (30 / 150),
       }
     };
-  }, []);
+  }, [isMobile]);
 
   const handleNewGame = useCallback(async () => {
     if (!user && !isGuest) {
