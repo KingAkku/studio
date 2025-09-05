@@ -85,12 +85,6 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
           </div>
         </div>
       )}
-
-      {isProcessing && !isNewGame && (
-         <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
-            <div className="text-2xl font-headline text-primary animate-pulse">Hiding the Dame...</div>
-         </div>
-      )}
     </div>
   );
 }

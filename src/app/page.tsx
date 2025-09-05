@@ -89,11 +89,8 @@ export default function Home() {
           setIsProcessing(false);
       }, 1500); // Eye-cover animation duration
     } else {
-        // A small delay to show "Hiding..." message
-        setTimeout(() => {
-            setIsProcessing(false); 
-            setIsGameActive(true);
-        }, 500);
+        setIsProcessing(false); 
+        setIsGameActive(true);
     }
 
   }, [user, isGuest, toast, consecutiveMisses, getResponsiveSundariSize, isNewGame]);
