@@ -1,7 +1,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
 
 interface GameCanvasProps {
   sundariPosition: { x: number; y: number } | null;
@@ -11,11 +10,10 @@ interface GameCanvasProps {
   onCanvasClick: (x: number, y: number) => void;
   isGameActive: boolean;
   isProcessing: boolean;
-  isNewGame: boolean;
   lastScore: number | null;
 }
 
-export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots, onCanvasClick, isGameActive, isProcessing, isNewGame, lastScore }: GameCanvasProps) {
+export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots, onCanvasClick, isGameActive, isProcessing, lastScore }: GameCanvasProps) {
   
   const handleMouseClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!isGameActive) return;
@@ -25,7 +23,7 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
     onCanvasClick(x, y);
   };
   
-  const showInitialOverlay = !sundariPosition && dots.length === 0;
+  const showInitialOverlay = !sundariPosition && dots.length === 0 && !isProcessing;
   const showGameOverMessage = lastScore !== null && !isGameActive && !isProcessing;
 
   return (
@@ -63,8 +61,6 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
             border: '2px solid #8B0000',
          }}/>
       ))}
-
-      {isNewGame && isProcessing && <div className="absolute inset-0 eye-cover-overlay z-10" />}
 
       {showInitialOverlay && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">

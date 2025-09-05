@@ -25,7 +25,6 @@ export default function Home() {
   const [sundariPosition, setSundariPosition] = useState<{ x: number; y: number } | null>(null);
   const [dots, setDots] = useState<{ x: number; y: number; score: number }[]>([]);
   const [isGameActive, setIsGameActive] = useState(false);
-  const [isNewGame, setIsNewGame] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastScore, setLastScore] = useState<number | null>(null);
   const [consecutiveMisses, setConsecutiveMisses] = useState(0);
@@ -87,18 +86,12 @@ export default function Home() {
     
     setSundariPosition(newPosition);
 
-    if (isNewGame) {
-      setTimeout(() => {
-          setIsGameActive(true);
-          setIsNewGame(false);
-          setIsProcessing(false);
-      }, 1500); // Eye-cover animation duration
-    } else {
-        setIsProcessing(false); 
+    setTimeout(() => {
         setIsGameActive(true);
-    }
+        setIsProcessing(false);
+    }, 500); // Short delay to hide sundari before game starts
 
-  }, [user, isGuest, toast, consecutiveMisses, getResponsiveSundariSize, isNewGame]);
+  }, [user, isGuest, toast, consecutiveMisses, getResponsiveSundariSize]);
   
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -167,7 +160,7 @@ export default function Home() {
             <Crown className="text-primary"/> Leaderboard
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex-grow overflow-y-auto">
+        <CardContent className="flex-grow flex flex-col overflow-y-auto">
           <Leaderboard />
         </CardContent>
       </Card>
@@ -218,9 +211,9 @@ export default function Home() {
               <span className="text-xs">Scores</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="h-4/5">
+        <SheetContent side="bottom" className="h-4/5 flex flex-col">
            <SheetHeader><SheetTitle className="flex items-center gap-2 p-4"><Crown className="text-primary"/>Leaderboard</SheetTitle></SheetHeader>
-           <div className="overflow-y-auto h-full pb-20">
+           <div className="overflow-y-auto flex-grow">
             <Leaderboard />
            </div>
         </SheetContent>
@@ -241,7 +234,6 @@ export default function Home() {
           onCanvasClick={handleCanvasClick}
           isGameActive={isGameActive}
           isProcessing={isProcessing}
-          isNewGame={isNewGame}
           lastScore={lastScore}
         />
       </main>

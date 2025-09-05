@@ -92,9 +92,9 @@ export function Leaderboard() {
 
   if (loading) {
     return (
-      <div className="space-y-3">
-        {[...Array(7)].map((_, i) => (
-          <div key={i} className="flex items-center gap-3 p-2">
+      <div className="space-y-3 p-2">
+        {[...Array(10)].map((_, i) => (
+          <div key={i} className="flex items-center gap-3 p-1">
             <Skeleton className="h-6 w-6 rounded-full" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-3/4" />
@@ -106,9 +106,9 @@ export function Leaderboard() {
   }
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto px-2">
         <ul className="space-y-2">
-          {players.slice(0, 7).map((player, index) => (
+          {players.map((player, index) => (
             <PlayerRow 
                 key={player.id} 
                 player={player} 
@@ -116,16 +116,6 @@ export function Leaderboard() {
                 isCurrentUser={user?.id === player.id}
             />
           ))}
-          {players.length > 7 && (
-            players.slice(7).map((player, index) => (
-                <PlayerRow 
-                    key={player.id} 
-                    player={player} 
-                    rank={index + 8}
-                    isCurrentUser={user?.id === player.id}
-                />
-            ))
-          )}
            {userPlayer && !isUserInTop10 && userRank !== null && (
             <>
                 <li className="flex justify-center items-center my-2">
