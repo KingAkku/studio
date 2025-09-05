@@ -56,7 +56,10 @@ export function UserAuth() {
     let title = 'Authentication Failed';
     let description = error.message;
 
-    if (error.code === 'auth/configuration-not-found') {
+    if (error.code === 'auth/popup-closed-by-user') {
+      title = 'Login Canceled';
+      description = 'You closed the login window before completing the process. Please try again.';
+    } else if (error.code === 'auth/configuration-not-found') {
       title = 'Configuration Missing';
       description = 'Email/Password sign-in is not enabled. Please enable it in your Firebase project authentication settings.';
     }
