@@ -94,9 +94,8 @@ export default function Home() {
     setLastScore(score);
     setIsGameActive(false);
 
-    if (user) {
-      const newTotalScore = (user.score || 0) + score;
-      updateUserScore(user.id, newTotalScore);
+    if (user && score > 0) {
+      updateUserScore(user.id, score);
     }
   };
 

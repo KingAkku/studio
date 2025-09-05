@@ -1,15 +1,13 @@
+
 import { doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from './firebase';
 
-export const updateUserScore = async (userId: string, newScore: number) => {
-  if (!userId) return;
+export const updateUserScore = async (userId: string, scoreGained: number) => {
+  if (!userId || scoreGained <= 0) return;
   const playerDocRef = doc(db, 'players', userId);
   try {
-    // Firestore's atomic `increment` is best to avoid race conditions.
-    // However, the game logic provides the total new score.
-    // To use increment, we would pass the score delta instead.
     await updateDoc(playerDocRef, {
-      score: newScore,
+      score: increment(scoreGained),
     });
   } catch (error) {
     console.error("Error updating score: ", error);
