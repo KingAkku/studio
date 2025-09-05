@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User } from 'lucide-react';
+import { Button } from './ui/button';
 
 const dummyPlayers: Player[] = [
   { id: '1', name: 'Mystic Seeker', email: '', score: 1500 },
@@ -37,27 +38,31 @@ const PlayerRow = ({ player, rank, isCurrentUser }: { player: Player; rank: numb
 );
 
 export function Leaderboard() {
+  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [topPlayers, setTopPlayers] = useState<Player[]>([]);
   const [currentUserData, setCurrentUserData] = useState<{ player: Player; rank: number } | null>(null);
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, 'players'), orderBy('score', 'desc'));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const allPlayers: Player[] = [];
+      const allPlayersData: Player[] = [];
       querySnapshot.forEach((doc) => {
-        allPlayers.push({ id: doc.id, ...doc.data() } as Player);
+        allPlayersData.push({ id: doc.id, ...doc.data() } as Player);
       });
 
-      if (allPlayers.length > 0) {
-        setTopPlayers(allPlayers.slice(0, 6));
+      setAllPlayers(allPlayersData);
+
+      if (allPlayersData.length > 0) {
+        setTopPlayers(allPlayersData.slice(0, isExpanded ? 10 : 6));
 
         if (user) {
-          const rank = allPlayers.findIndex(p => p.id === user.id);
+          const rank = allPlayersData.findIndex(p => p.id === user.id);
           if (rank !== -1) {
-            setCurrentUserData({ player: allPlayers[rank], rank: rank + 1 });
+            setCurrentUserData({ player: allPlayersData[rank], rank: rank + 1 });
           } else {
             setCurrentUserData(null);
           }
@@ -65,19 +70,23 @@ export function Leaderboard() {
           setCurrentUserData(null);
         }
       } else {
-        setTopPlayers(dummyPlayers);
+        setTopPlayers(dummyPlayers.slice(0, isExpanded ? 10 : 6));
         setCurrentUserData(null);
       }
       setLoading(false);
     }, (error) => {
       console.error("Error fetching leaderboard: ", error);
-      setTopPlayers(dummyPlayers); // Fallback to dummies
+      setTopPlayers(dummyPlayers.slice(0, isExpanded ? 10 : 6));
       setCurrentUserData(null);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isExpanded]);
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
 
   if (loading) {
     return (
@@ -98,7 +107,7 @@ export function Leaderboard() {
 
   return (
     <div className="h-full px-2 flex flex-col">
-        <ul className="space-y-2 flex-grow">
+        <ul className="space-y-2">
           {topPlayers.map((player, index) => (
             <PlayerRow 
                 key={player.id} 
@@ -108,8 +117,25 @@ export function Leaderboard() {
             />
           ))}
         </ul>
+        
+        <div className="flex-grow" />
+        
+        <div className="py-2 text-center">
+          {isExpanded ? (
+            <Button variant="link" size="sm" onClick={toggleExpanded}>
+              Go back to top
+            </Button>
+          ) : (
+            allPlayers.length > 6 && (
+              <Button variant="link" size="sm" onClick={toggleExpanded}>
+                See more
+              </Button>
+            )
+          )}
+        </div>
+        
         {currentUserData && !currentUserInTop && (
-          <div className="mt-2 pt-2 border-t border-border">
+          <div className="mt-auto pt-2 border-t border-border">
              <PlayerRow 
                 key={currentUserData.player.id} 
                 player={currentUserData.player} 
