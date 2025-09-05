@@ -2,30 +2,31 @@
 import React from 'react';
 import Image from 'next/image';
 
+type GameState = 'IDLE' | 'HIDING' | 'ACTIVE' | 'REVEALED';
+
 interface GameCanvasProps {
   sundariPosition: { x: number; y: number } | null;
   sundariWidth: number;
   sundariHeight: number;
   dots: { x: number; y: number; score: number }[];
   onCanvasClick: (x: number, y: number) => void;
-  isGameActive: boolean;
-  isProcessing: boolean;
+  gameState: GameState;
   lastScore: number | null;
 }
 
-export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots, onCanvasClick, isGameActive, lastScore }: GameCanvasProps) {
+export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots, onCanvasClick, gameState, lastScore }: GameCanvasProps) {
   
   const handleMouseClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!isGameActive) return;
+    if (gameState !== 'ACTIVE') return;
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     onCanvasClick(x, y);
   };
   
-  const showInitialOverlay = !sundariPosition && dots.length === 0;
-  const showGameOverMessage = lastScore !== null && !isGameActive;
-  const showSundari = sundariPosition && !isGameActive && dots.length > 0;
+  const showInitialOverlay = gameState === 'IDLE';
+  const showGameOverMessage = gameState === 'REVEALED' && lastScore !== null;
+  const showSundari = gameState === 'REVEALED' && sundariPosition && dots.length > 0;
 
   return (
     <div className="w-full h-full relative" onClick={handleMouseClick}>
@@ -83,3 +84,5 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
     </div>
   );
 }
+
+    

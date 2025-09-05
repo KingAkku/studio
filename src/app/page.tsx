@@ -19,13 +19,14 @@ const BASE_SUNDARI_WIDTH = 100;
 const BASE_SUNDARI_HEIGHT = 150;
 const BASE_CANVAS_AREA = 800 * 600;
 
+type GameState = 'IDLE' | 'HIDING' | 'ACTIVE' | 'REVEALED';
+
 export default function Home() {
   const { user, loading, isGuest } = useAuth();
   const { toast } = useToast();
   const [sundariPosition, setSundariPosition] = useState<{ x: number; y: number } | null>(null);
   const [dots, setDots] = useState<{ x: number; y: number; score: number }[]>([]);
-  const [isGameActive, setIsGameActive] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [gameState, setGameState] = useState<GameState>('IDLE');
   const [lastScore, setLastScore] = useState<number | null>(null);
   const [consecutiveMisses, setConsecutiveMisses] = useState(0);
   const mainContentRef = useRef<HTMLDivElement>(null);
@@ -59,6 +60,8 @@ export default function Home() {
   }, [isMobile]);
 
   const handleNewGame = useCallback(async () => {
+    if (gameState !== 'IDLE' && gameState !== 'REVEALED') return;
+
     if (!user && !isGuest) {
       toast({
         variant: "destructive",
@@ -68,9 +71,10 @@ export default function Home() {
       return;
     }
 
+    setGameState('HIDING');
     setDots([]);
     setLastScore(null);
-    setIsProcessing(true); // Start processing for hiding
+    setSundariPosition(null);
 
     const canvasWidth = mainContentRef.current?.clientWidth || 800;
     const canvasHeight = mainContentRef.current?.clientHeight || 600;
@@ -86,16 +90,16 @@ export default function Home() {
     
     setSundariPosition(newPosition);
 
+    // Short delay before the game becomes active to prevent seeing the lady
     setTimeout(() => {
-        setIsGameActive(true);
-        setIsProcessing(false);
-    }, 500); // Short delay to hide sundari before game starts
+        setGameState('ACTIVE');
+    }, 100);
 
-  }, [user, isGuest, toast, consecutiveMisses, getResponsiveSundariSize]);
+  }, [user, isGuest, toast, consecutiveMisses, getResponsiveSundariSize, gameState]);
   
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code === 'Space' && !isGameActive && !isProcessing) {
+      if (event.code === 'Space' && (gameState === 'IDLE' || gameState === 'REVEALED')) {
         event.preventDefault();
         handleNewGame();
       }
@@ -105,10 +109,10 @@ export default function Home() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isGameActive, isProcessing, handleNewGame]);
+  }, [gameState, handleNewGame]);
 
   const handleCanvasClick = (x: number, y: number) => {
-    if (!isGameActive || !sundariPosition || isProcessing || dots.length > 0) return;
+    if (gameState !== 'ACTIVE' || !sundariPosition) return;
 
     const { width: sundariWidth, height: sundariHeight, forehead: sundariForehead } = getResponsiveSundariSize();
     const foreheadX = sundariPosition.x + sundariForehead.x;
@@ -138,10 +142,11 @@ export default function Home() {
 
     setDots(prevDots => [...prevDots, { x, y, score }]);
     setLastScore(score);
-    setIsGameActive(false);
+    setGameState('REVEALED');
   };
   
   const { width: sundariWidth, height: sundariHeight } = getResponsiveSundariSize();
+  const isButtonDisabled = gameState === 'HIDING' || gameState === 'ACTIVE' || loading;
 
   const DesktopSidebar = () => (
     <aside className="w-[320px] flex-col border-r border-border p-4 shadow-lg bg-card/80 hidden md:flex">
@@ -154,7 +159,7 @@ export default function Home() {
         <UserAuth />
       </div>
 
-      <Card className="flex-grow flex flex-col">
+      <Card className="flex-grow flex flex-col overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Crown className="text-primary"/> Leaderboard
@@ -170,9 +175,9 @@ export default function Home() {
           className="w-full"
           size="lg"
           onClick={handleNewGame}
-          disabled={isProcessing || loading || isGameActive}
+          disabled={isButtonDisabled}
         >
-          {isProcessing ? 'Starting...' : 'New Game'}
+          {gameState === 'HIDING' ? 'Starting...' : 'New Game'}
         </Button>
       </div>
     </aside>
@@ -199,9 +204,9 @@ export default function Home() {
           className="w-24 h-12 text-lg"
           size="lg"
           onClick={handleNewGame}
-          disabled={isProcessing || loading || isGameActive}
+          disabled={isButtonDisabled}
         >
-          {isProcessing ? <Gamepad2 className="animate-spin" /> : 'Play'}
+          {gameState === 'HIDING' ? <Gamepad2 className="animate-spin" /> : 'Play'}
         </Button>
 
       <Sheet>
@@ -232,8 +237,7 @@ export default function Home() {
           sundariHeight={sundariHeight}
           dots={dots}
           onCanvasClick={handleCanvasClick}
-          isGameActive={isGameActive}
-          isProcessing={isProcessing}
+          gameState={gameState}
           lastScore={lastScore}
         />
       </main>
@@ -241,3 +245,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
