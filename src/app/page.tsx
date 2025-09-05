@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -42,7 +43,7 @@ export default function Home() {
     const canvasWidth = mainContentRef.current?.clientWidth || 800;
     const canvasHeight = mainContentRef.current?.clientHeight || 600;
 
-    // First game, random position
+    // Constrain Sundari to be within the canvas
     const x = Math.random() * (canvasWidth - SUNDARI_IMAGE_WIDTH);
     const y = Math.random() * (canvasHeight - SUNDARI_IMAGE_HEIGHT);
     setSundariPosition({ x, y });
@@ -93,26 +94,34 @@ export default function Home() {
     setDots(prevDots => [...prevDots, { x, y, score }]);
     setIsGameActive(false);
 
-    if (score > 0) {
-      if (user) {
-        const newTotalScore = (user.score || 0) + score;
-        updateUserScore(user.id, newTotalScore);
+    if (user) {
+      const newTotalScore = (user.score || 0) + score;
+      updateUserScore(user.id, newTotalScore);
+      if (score > 0) {
         toast({
           title: `You scored ${score} points!`,
           description: `Your new total is ${newTotalScore}. Click 'New Game' to play again.`,
         });
-      } else if (isGuest) {
-          toast({
-              title: `You scored ${score} points!`,
-              description: "Log in to save your score. Click 'New Game' to play again.",
-          });
-      }
-    } else {
+      } else {
         toast({
             variant: 'destructive',
             title: "Miss!",
             description: "You missed the target. Click 'New Game' to try again.",
         });
+      }
+    } else if (isGuest) {
+        if (score > 0) {
+            toast({
+                title: `You scored ${score} points!`,
+                description: "Log in to save your score. Click 'New Game' to play again.",
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: "Miss!",
+                description: "You missed the target. Click 'New Game' to try again.",
+            });
+        }
     }
   };
 
