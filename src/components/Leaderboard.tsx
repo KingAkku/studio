@@ -24,18 +24,18 @@ const dummyPlayers: Player[] = [
 const PlayerRow = ({ player, rank, isCurrentUser }: { player: Player; rank: number; isCurrentUser?: boolean }) => (
   <li
     className={cn(
-      "flex items-center gap-3 p-2 rounded-lg transition-all text-sm",
+      "flex items-center gap-2 p-1 rounded-lg transition-all text-xs",
       isCurrentUser ? "bg-primary/20 scale-105" : ""
     )}
   >
-    <span className="font-bold text-base w-6 text-center text-muted-foreground">{rank}</span>
-    <Avatar className="h-8 w-8">
-      <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+    <span className="font-bold text-sm w-5 text-center text-muted-foreground">{rank}</span>
+    <Avatar className="h-6 w-6">
+      <AvatarFallback><User className="h-3 w-3" /></AvatarFallback>
     </Avatar>
     <div className="flex-1 overflow-hidden">
-      <p className="font-semibold truncate">{player.name || 'Anonymous'}</p>
+      <p className="font-medium truncate">{player.name || 'Anonymous'}</p>
     </div>
-    <p className="font-bold text-base text-primary">{player.score}</p>
+    <p className="font-bold text-sm text-primary">{player.score}</p>
   </li>
 );
 
@@ -107,7 +107,7 @@ export function Leaderboard() {
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="space-y-2">
       {players.map((player, index) => (
         <PlayerRow 
             key={player.id} 
