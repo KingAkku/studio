@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, limit, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
 import type { Player } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -18,15 +18,13 @@ const dummyPlayers: Player[] = [
   { id: '6', name: 'Nightshade', email: '', score: 1050 },
   { id: '7', name: 'Wraith', email: '', score: 980 },
   { id: '8', name: 'Specter', email: '', score: 920 },
-  { id: '9', name: 'Abyss', email: '', score: 850 },
-  { id: '10', name: 'Shade', email: '', score: 780 },
 ];
 
 const PlayerRow = ({ player, rank, isCurrentUser }: { player: Player; rank: number; isCurrentUser?: boolean }) => (
   <li
     className={cn(
       "flex items-center gap-2 p-1 rounded-lg transition-all text-xs",
-      isCurrentUser ? "bg-primary/20 scale-105" : ""
+      isCurrentUser ? "bg-primary/20" : ""
     )}
   >
     <span className="font-bold text-sm w-5 text-center text-muted-foreground">{rank}</span>
@@ -45,12 +43,10 @@ export function Leaderboard() {
   const [players, setPlayers] = useState<Player[]>([]);
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [userRank, setUserRank] = useState<number | null>(null);
-  const [userPlayer, setUserPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'players'), orderBy('score', 'desc'), limit(10));
-    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+    const q = query(collection(db, 'players'), orderBy('score', 'desc'), limit(8));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const playersData: Player[] = [];
       querySnapshot.forEach((doc) => {
         playersData.push({ id: doc.id, ...doc.data() } as Player);
@@ -59,41 +55,23 @@ export function Leaderboard() {
       if (playersData.length > 0) {
         setPlayers(playersData);
       } else {
-        setPlayers(dummyPlayers.slice(0, 10));
+        setPlayers(dummyPlayers.slice(0, 8));
       }
-
-      if (user) {
-        const allPlayersQuery = query(collection(db, 'players'), orderBy('score', 'desc'));
-        const allPlayersSnapshot = await getDocs(allPlayersQuery);
-        const allPlayers = allPlayersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as Player }));
-        const userIndex = allPlayers.findIndex(p => p.id === user.id);
-        
-        if (userIndex !== -1) {
-            setUserRank(userIndex + 1);
-            setUserPlayer(allPlayers[userIndex]);
-        } else {
-            setUserRank(null);
-            setUserPlayer(null);
-        }
-      }
-
-
       setLoading(false);
     }, (error) => {
       console.error("Error fetching leaderboard: ", error);
-      setPlayers(dummyPlayers.slice(0, 10)); // Fallback to dummies
+      setPlayers(dummyPlayers.slice(0, 8)); // Fallback to dummies
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, []);
 
-  const isUserInTop10 = user && players.some(p => p.id === user.id);
 
   if (loading) {
     return (
       <div className="space-y-3 p-2">
-        {[...Array(10)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <div key={i} className="flex items-center gap-3 p-1">
             <Skeleton className="h-6 w-6 rounded-full" />
             <div className="flex-1 space-y-2">
@@ -116,16 +94,6 @@ export function Leaderboard() {
                 isCurrentUser={user?.id === player.id}
             />
           ))}
-           {userPlayer && !isUserInTop10 && userRank !== null && (
-            <>
-                <li className="flex justify-center items-center my-2">
-                    <div className="w-full border-t border-dashed border-border"></div>
-                    <span className="mx-2 text-muted-foreground text-xs">...</span>
-                    <div className="w-full border-t border-dashed border-border"></div>
-                </li>
-                <PlayerRow player={userPlayer} rank={userRank} isCurrentUser={true} />
-            </>
-           )}
         </ul>
     </div>
   );
