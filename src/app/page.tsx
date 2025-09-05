@@ -24,6 +24,7 @@ export default function Home() {
   const [isGameActive, setIsGameActive] = useState(false);
   const [isNewGame, setIsNewGame] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [lastScore, setLastScore] = useState<number | null>(null);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
   const handleNewGame = useCallback(async () => {
@@ -38,26 +39,25 @@ export default function Home() {
 
     setIsProcessing(true);
     setDots([]);
+    setLastScore(null);
     setIsNewGame(true);
 
     const canvasWidth = mainContentRef.current?.clientWidth || 800;
     const canvasHeight = mainContentRef.current?.clientHeight || 600;
 
-    // Constrain Sundari to be within the canvas
     const x = Math.random() * (canvasWidth - SUNDARI_IMAGE_WIDTH);
     const y = Math.random() * (canvasHeight - SUNDARI_IMAGE_HEIGHT);
     setSundariPosition({ x, y });
 
-    // Allow overlay effect to play
     setTimeout(() => {
         setIsGameActive(true);
         setIsNewGame(false);
         setIsProcessing(false);
-    }, 1500); // Duration of the overlay animation
+    }, 1500);
 
   }, [user, isGuest, toast]);
   
-    useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.code === 'Space' && !isGameActive && !isProcessing) {
         event.preventDefault();
@@ -83,45 +83,20 @@ export default function Home() {
     const clickIsOnImage = x >= sundariPosition.x && x <= sundariPosition.x + SUNDARI_IMAGE_WIDTH && y >= sundariPosition.y && y <= sundariPosition.y + SUNDARI_IMAGE_HEIGHT;
     
     if (clickIsOnImage) {
-        score = 10; // Base score for hitting the image
-        if (distance <= 5) score += 10; // Bonus for forehead
+        score = 10;
+        if (distance <= 5) score += 10;
         else if (distance <= 15) score += 7;
         else if (distance <= 30) score += 4;
         else if (distance <= 50) score += 2;
     }
 
-
     setDots(prevDots => [...prevDots, { x, y, score }]);
+    setLastScore(score);
     setIsGameActive(false);
 
     if (user) {
       const newTotalScore = (user.score || 0) + score;
       updateUserScore(user.id, newTotalScore);
-      if (score > 0) {
-        toast({
-          title: `You scored ${score} points!`,
-          description: `Your new total is ${newTotalScore}. Click 'New Game' to play again.`,
-        });
-      } else {
-        toast({
-            variant: 'destructive',
-            title: "Miss!",
-            description: "You missed the target. Click 'New Game' to try again.",
-        });
-      }
-    } else if (isGuest) {
-        if (score > 0) {
-            toast({
-                title: `You scored ${score} points!`,
-                description: "Log in to save your score. Click 'New Game' to play again.",
-            });
-        } else {
-            toast({
-                variant: 'destructive',
-                title: "Miss!",
-                description: "You missed the target. Click 'New Game' to try again.",
-            });
-        }
     }
   };
 
@@ -168,6 +143,7 @@ export default function Home() {
           isGameActive={isGameActive}
           isProcessing={isProcessing}
           isNewGame={isNewGame}
+          lastScore={lastScore}
         />
       </main>
     </div>

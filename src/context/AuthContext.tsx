@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
@@ -37,10 +38,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               score: playerData.score,
             });
           } else {
+            // This case might happen if doc creation is delayed
             setUser({
               id: firebaseUser.uid,
-              name: firebaseUser.displayName || firebaseUser.email || 'New Player',
-              email: firebaseUser.email || '',
+              name: firebaseUser.displayName,
+              email: firebaseUser.email,
               score: 0,
             });
           }

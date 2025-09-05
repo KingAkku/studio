@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useEffect } from 'react';
@@ -45,8 +46,7 @@ export function UserAuth() {
 
 
   useEffect(() => {
-    // Check if the user's name is their email, which we use as a default.
-    if (user && user.name === user.email) {
+    if (user && !user.name) {
       setUsernameModalOpen(true);
     }
   }, [user]);
@@ -127,7 +127,7 @@ export function UserAuth() {
       const userDocRef = doc(db, 'players', user.uid);
       await setDoc(userDocRef, {
         id: user.uid,
-        name: user.email, // Default name to email
+        name: null, // Set name to null initially to trigger username popup
         email: user.email,
         score: 0,
       });
@@ -250,15 +250,19 @@ export function UserAuth() {
                     <AvatarFallback><UserIcon /></AvatarFallback>
                   </Avatar>
                   <div className="text-left overflow-hidden">
-                    <p className="font-semibold truncate">{user.name}</p>
+                    <p className="font-semibold truncate">{user.name || user.email}</p>
                     <p className="text-sm text-muted-foreground">Score: {user.score}</p>
                   </div>
                 </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>{user.name || 'My Account'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setUsernameModalOpen(true)}>
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>Edit Username</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>

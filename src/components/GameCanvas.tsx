@@ -1,4 +1,5 @@
-import React, { useRef, useEffect } from 'react';
+
+import React from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -9,46 +10,11 @@ interface GameCanvasProps {
   isGameActive: boolean;
   isProcessing: boolean;
   isNewGame: boolean;
+  lastScore: number | null;
 }
 
-export function GameCanvas({ sundariPosition, dots, onCanvasClick, isGameActive, isProcessing, isNewGame }: GameCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const sundariRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const context = canvas.getContext('2d');
-    if (!context) return;
-
-    // Resize canvas to fit parent
-    const parent = canvas.parentElement;
-    if (parent) {
-      canvas.width = parent.clientWidth;
-      canvas.height = parent.clientHeight;
-    }
-
-    // Clear canvas
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw dots
-    dots.forEach(dot => {
-      context.beginPath();
-      context.arc(dot.x, dot.y, 5, 0, 2 * Math.PI, false);
-      context.fillStyle = 'red';
-      context.fill();
-      context.lineWidth = 2;
-      context.strokeStyle = '#8B0000';
-      context.stroke();
-      
-      // Add red-dot class for animation
-      // This is tricky with canvas, we'd manage state to do this
-      // For simplicity, we animate via CSS on a div instead.
-    });
-
-  }, [dots]);
-
+export function GameCanvas({ sundariPosition, dots, onCanvasClick, isGameActive, isProcessing, isNewGame, lastScore }: GameCanvasProps) {
+  
   const handleMouseClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!isGameActive) return;
     const rect = event.currentTarget.getBoundingClientRect();
@@ -58,17 +24,16 @@ export function GameCanvas({ sundariPosition, dots, onCanvasClick, isGameActive,
   };
   
   const showInitialOverlay = !isGameActive && !sundariPosition && dots.length === 0;
+  const showGameOverMessage = lastScore !== null && !isGameActive;
 
   return (
     <div className="w-full h-full relative" onClick={handleMouseClick}>
       {sundariPosition && (
         <div
-          ref={sundariRef}
           style={{
             position: 'absolute',
             left: `${sundariPosition.x}px`,
             top: `${sundariPosition.y}px`,
-            // Hide the image visually, but keep it in the DOM for logic
             visibility: isGameActive ? 'hidden' : 'visible',
             opacity: isProcessing || isGameActive ? 0 : 1.0,
           }}
@@ -101,7 +66,16 @@ export function GameCanvas({ sundariPosition, dots, onCanvasClick, isGameActive,
         <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
           <div className="text-center p-8 bg-card rounded-lg shadow-2xl">
             <h2 className="text-3xl font-headline text-primary mb-2">Welcome to Sundari!</h2>
-            <p className="text-muted-foreground">Click 'New Game' to begin.</p>
+            <p className="text-muted-foreground">Click 'New Game' or press Space to begin.</p>
+          </div>
+        </div>
+      )}
+      
+      {showGameOverMessage && (
+        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+          <div className="text-center p-8 rounded-lg game-over-message">
+              <p className="text-4xl font-headline text-primary">Your score: {lastScore}</p>
+              <p className="text-xl font-body text-muted-foreground mt-2">Press Space bar to try again!</p>
           </div>
         </div>
       )}
