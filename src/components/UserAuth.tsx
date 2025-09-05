@@ -170,9 +170,6 @@ export function UserAuth() {
     <>
       {!user ? (
         <div className="flex flex-col gap-2">
-          <Button className="w-full" onClick={handleGoogleSignIn} variant="default">
-            <LogIn className="mr-2 h-4 w-4" /> Login with Google
-          </Button>
           <Dialog open={isLoginOpen} onOpenChange={setLoginOpen}>
             <DialogTrigger asChild>
               <Button className="w-full" variant="secondary">

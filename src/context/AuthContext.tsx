@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const auth = getAuth();
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
       setIsGuest(false); // Reset guest state on auth change
       if (firebaseUser) {
         const userDocRef = doc(db, 'players', firebaseUser.uid);
@@ -48,6 +48,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
           setLoading(false);
         });
+
+        // Return the snapshot listener's unsubscribe function to be called on cleanup
         return () => unsubscribeSnapshot();
       } else {
         setUser(null);
