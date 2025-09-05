@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getAuth, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, googleProvider } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,23 @@ export function UserAuth() {
   const [isSignUpOpen, setSignUpOpen] = useState(false);
   const [isLoginOpen, setLoginOpen] = useState(false);
 
+  const handleAuthError = (error: AuthError) => {
+    console.error("Authentication failed:", error);
+    let title = 'Authentication Failed';
+    let description = error.message;
+
+    if (error.code === 'auth/configuration-not-found') {
+      title = 'Configuration Missing';
+      description = 'Email/Password sign-in is not enabled. Please enable it in your Firebase project authentication settings.';
+    }
+
+    toast({
+      variant: 'destructive',
+      title: title,
+      description: description,
+    });
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -56,12 +73,7 @@ export function UserAuth() {
         });
       }
     } catch (error) {
-      console.error("Authentication failed:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Failed',
-        description: (error as Error).message,
-      });
+      handleAuthError(error as AuthError);
     }
   };
 
@@ -70,12 +82,7 @@ export function UserAuth() {
       await signInWithEmailAndPassword(auth, email, password);
       setLoginOpen(false);
     } catch (error) {
-      console.error("Login failed:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: (error as Error).message,
-      });
+      handleAuthError(error as AuthError);
     }
   };
   
@@ -93,12 +100,7 @@ export function UserAuth() {
       });
       setSignUpOpen(false);
     } catch (error) {
-      console.error("Sign up failed:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Sign Up Failed',
-        description: (error as Error).message,
-      });
+      handleAuthError(error as AuthError);
     }
   };
 
