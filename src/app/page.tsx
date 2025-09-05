@@ -79,20 +79,21 @@ export default function Home() {
       imageHeight: sundariHeight,
       consecutiveMisses: consecutiveMisses,
     });
+    
+    setSundariPosition(newPosition);
 
-    // If it's the very first game, do the eye cover animation
     if (isNewGame) {
-      setSundariPosition(newPosition);
       setTimeout(() => {
           setIsGameActive(true);
           setIsNewGame(false);
           setIsProcessing(false);
-      }, 1500);
+      }, 1500); // Eye-cover animation duration
     } else {
-      // For subsequent games, just hide and show quickly
-      setSundariPosition(newPosition);
-      setIsProcessing(false); // Done processing
-      setIsGameActive(true);
+        // A small delay to show "Hiding..." message
+        setTimeout(() => {
+            setIsProcessing(false); 
+            setIsGameActive(true);
+        }, 500);
     }
 
   }, [user, isGuest, toast, consecutiveMisses, getResponsiveSundariSize, isNewGame]);
