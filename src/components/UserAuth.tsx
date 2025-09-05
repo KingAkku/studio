@@ -89,27 +89,6 @@ export function UserAuth() {
   };
 
 
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      
-      const userDocRef = doc(db, 'players', user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-          id: user.uid,
-          name: user.displayName,
-          email: user.email,
-          score: 0,
-        });
-      }
-    } catch (error) {
-      handleAuthError(error as AuthError);
-    }
-  };
-
   const handleEmailLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -125,12 +104,16 @@ export function UserAuth() {
       const user = result.user;
       
       const userDocRef = doc(db, 'players', user.uid);
-      await setDoc(userDocRef, {
-        id: user.uid,
-        name: null, // Set name to null initially to trigger username popup
-        email: user.email,
-        score: 0,
-      });
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+            id: user.uid,
+            name: null, 
+            email: user.email,
+            score: 0,
+        });
+      }
       setSignUpOpen(false);
     } catch (error) {
       handleAuthError(error as AuthError);
