@@ -18,7 +18,7 @@ const LADY_IMAGE_HEIGHT = 150;
 const LADY_FOREHEAD_POS = { x: 50, y: 30 }; // Relative to image top-left
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, loading, isGuest } = useAuth();
   const { toast } = useToast();
   const [ladyPosition, setLadyPosition] = useState<{ x: number; y: number } | null>(null);
   const [dots, setDots] = useState<{ x: number; y: number; score: number }[]>([]);
@@ -28,11 +28,11 @@ export default function Home() {
   const mainContentRef = useRef<HTMLDivElement>(null);
   
   const handleNewGame = useCallback(async () => {
-    if (!user) {
+    if (!user && !isGuest) {
       toast({
         variant: "destructive",
         title: "Login Required",
-        description: "Please log in to start a new game.",
+        description: "Please log in or play as a guest to start a new game.",
       });
       return;
     }
@@ -74,7 +74,7 @@ export default function Home() {
     } finally {
       setIsProcessing(false);
     }
-  }, [user, gameHistory, toast]);
+  }, [user, isGuest, gameHistory, toast]);
 
   const handleCanvasClick = (x: number, y: number) => {
     if (!isGameActive || !ladyPosition || isProcessing) return;
@@ -104,6 +104,11 @@ export default function Home() {
         title: `You scored ${score} points!`,
         description: `Your new total is ${newTotalScore}.`,
       });
+    } else if (isGuest && score > 0) {
+        toast({
+            title: `You scored ${score} points!`,
+            description: "Log in to save your score.",
+        });
     } else if (score === 0) {
         toast({
             title: "Miss!",
