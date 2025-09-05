@@ -73,7 +73,7 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
       
       {showGameOverMessage && (
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-          <div className="text-center p-8 rounded-lg game-over-message">
+          <div className="game-over-message rounded-lg border-2 border-primary bg-card/90 p-6 shadow-2xl text-center">
               <p className="text-4xl font-headline text-primary">Your score: {lastScore}</p>
               <p className="text-xl font-body text-muted-foreground mt-2 md:hidden">Tap 'Play' to try again!</p>
               <p className="text-xl font-body text-muted-foreground mt-2 hidden md:block">Press Space bar to try again!</p>
