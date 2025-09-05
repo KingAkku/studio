@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, limit, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import type { Player } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Crown } from 'lucide-react';
+import { User } from 'lucide-react';
 
 const dummyPlayers: Player[] = [
   { id: '1', name: 'Mystic Seeker', email: '', score: 1500 },
@@ -37,47 +37,47 @@ const PlayerRow = ({ player, rank, isCurrentUser }: { player: Player; rank: numb
 );
 
 export function Leaderboard() {
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [topPlayers, setTopPlayers] = useState<Player[]>([]);
+  const [currentUserData, setCurrentUserData] = useState<{ player: Player; rank: number } | null>(null);
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, 'players'), orderBy('score', 'desc'), limit(6));
+    const q = query(collection(db, 'players'), orderBy('score', 'desc'));
+    
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const playersData: Player[] = [];
+      const allPlayers: Player[] = [];
       querySnapshot.forEach((doc) => {
-        playersData.push({ id: doc.id, ...doc.data() } as Player);
+        allPlayers.push({ id: doc.id, ...doc.data() } as Player);
       });
-      
-      if (playersData.length > 0) {
-        setPlayers(playersData);
+
+      if (allPlayers.length > 0) {
+        setTopPlayers(allPlayers.slice(0, 6));
+
+        if (user) {
+          const rank = allPlayers.findIndex(p => p.id === user.id);
+          if (rank !== -1) {
+            setCurrentUserData({ player: allPlayers[rank], rank: rank + 1 });
+          } else {
+            setCurrentUserData(null);
+          }
+        } else {
+          setCurrentUserData(null);
+        }
       } else {
-        setPlayers(dummyPlayers);
+        setTopPlayers(dummyPlayers);
+        setCurrentUserData(null);
       }
       setLoading(false);
     }, (error) => {
       console.error("Error fetching leaderboard: ", error);
-      setPlayers(dummyPlayers); // Fallback to dummies
+      setTopPlayers(dummyPlayers); // Fallback to dummies
+      setCurrentUserData(null);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      const allPlayersQuery = query(collection(db, 'players'), orderBy('score', 'desc'));
-      getDocs(allPlayersQuery).then((snapshot) => {
-        const allPlayers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as Player }));
-        const rank = allPlayers.findIndex(p => p.id === user.id);
-        setCurrentUserRank(rank !== -1 ? rank + 1 : null);
-      });
-    } else {
-      setCurrentUserRank(null);
-    }
-  }, [user, players]); // Re-calculate rank if user or players list changes
-
+  }, [user]);
 
   if (loading) {
     return (
@@ -94,12 +94,12 @@ export function Leaderboard() {
     );
   }
 
-  const currentUserInTop = players.some(p => p.id === user?.id);
+  const currentUserInTop = topPlayers.some(p => p.id === user?.id);
 
   return (
     <div className="h-full px-2 flex flex-col">
         <ul className="space-y-2 flex-grow">
-          {players.map((player, index) => (
+          {topPlayers.map((player, index) => (
             <PlayerRow 
                 key={player.id} 
                 player={player} 
@@ -108,12 +108,12 @@ export function Leaderboard() {
             />
           ))}
         </ul>
-        {user && !currentUserInTop && currentUserRank && (
+        {currentUserData && !currentUserInTop && (
           <div className="mt-2 pt-2 border-t border-border">
              <PlayerRow 
-                key={user.id} 
-                player={user} 
-                rank={currentUserRank}
+                key={currentUserData.player.id} 
+                player={currentUserData.player} 
+                rank={currentUserData.rank}
                 isCurrentUser={true}
             />
           </div>
