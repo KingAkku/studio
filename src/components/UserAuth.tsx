@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogIn, LogOut, UserPlus, Ghost } from 'lucide-react';
+import { LogIn, LogOut, UserPlus, Ghost, User as UserIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -68,7 +68,7 @@ export function UserAuth() {
         await setDoc(userDocRef, {
           id: user.uid,
           name: user.displayName,
-          photoURL: user.photoURL,
+          email: user.email,
           score: 0,
         });
       }
@@ -94,8 +94,8 @@ export function UserAuth() {
       const userDocRef = doc(db, 'players', user.uid);
       await setDoc(userDocRef, {
         id: user.uid,
-        name: user.email,
-        photoURL: '',
+        name: user.email, // Default name to email
+        email: user.email,
         score: 0,
       });
       setSignUpOpen(false);
@@ -216,8 +216,7 @@ export function UserAuth() {
         <Button variant="outline" className="w-full justify-start h-14">
             <div className="flex items-center gap-4">
               <Avatar>
-                <AvatarImage src={user.photoURL ?? undefined} alt={user.name} />
-                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                <AvatarFallback><UserIcon /></AvatarFallback>
               </Avatar>
               <div className="text-left overflow-hidden">
                 <p className="font-semibold truncate">{user.name}</p>

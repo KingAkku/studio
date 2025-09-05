@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { getAuth, onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Player } from '@/types';
 
@@ -32,18 +32,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const playerData = docSnapshot.data();
             setUser({
               id: firebaseUser.uid,
-              name: firebaseUser.displayName || playerData.name,
-              photoURL: firebaseUser.photoURL || playerData.photoURL,
+              name: playerData.name,
+              email: playerData.email,
               score: playerData.score,
             });
           } else {
-            // This case can happen for a brief moment if the document is not yet created after sign up.
-            // The UserAuth component handles creating the document. We can set a temporary user state here
-            // or wait for the doc to be created.
             setUser({
               id: firebaseUser.uid,
               name: firebaseUser.displayName || firebaseUser.email || 'New Player',
-              photoURL: firebaseUser.photoURL || '',
+              email: firebaseUser.email || '',
               score: 0,
             });
           }

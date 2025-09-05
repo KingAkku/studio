@@ -1,7 +1,7 @@
 export interface Player {
   id: string;
   name: string;
-  photoURL: string;
+  email: string;
   score: number;
 }
 

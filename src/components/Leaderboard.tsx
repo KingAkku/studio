@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { User } from 'lucide-react';
 
 export function Leaderboard() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -54,8 +55,7 @@ export function Leaderboard() {
         >
           <span className="font-bold text-lg w-6 text-center text-muted-foreground">{index + 1}</span>
           <Avatar>
-            <AvatarImage src={player.photoURL} alt={player.name} />
-            <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback><User /></AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden">
             <p className="font-semibold truncate">{player.name}</p>
