@@ -1,0 +1,11 @@
+id,name,photoURL,score
+player1,Alice,https://picsum.photos/100,150
+player2,Bob,https://picsum.photos/101,120
+player3,Charlie,https://picsum.photos/102,110
+player4,Diana,https://picsum.photos/103,100
+player5,Eve,https://picsum.photos/104,90
+player6,Frank,https://picsum.photos/105,80
+player7,Grace,https://picsum.photos/106,70
+player8,Heidi,https://picsum.photos/107,60
+player9,Ivan,https://picsum.photos/108,50
+player10,Judy,https://picsum.photos/109,40

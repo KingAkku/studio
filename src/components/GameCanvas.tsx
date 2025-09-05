@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
-import Image from 'next/image';
+import React, { useRef, useEffect } from 'react';
+import { Lady } from './Lady';
 
 interface GameCanvasProps {
   ladyPosition: { x: number; y: number } | null;
@@ -9,22 +9,13 @@ interface GameCanvasProps {
   isProcessing: boolean;
 }
 
-const LADY_IMAGE_URL = 'https://picsum.photos/100/150';
-
 export function GameCanvas({ ladyPosition, dots, onCanvasClick, isGameActive, isProcessing }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [ladyImage, setLadyImage] = useState<HTMLImageElement | null>(null);
-
-  useEffect(() => {
-    const img = new window.Image();
-    img.src = LADY_IMAGE_URL;
-    img.onload = () => setLadyImage(img);
-    img.setAttribute('data-ai-hint', 'woman portrait');
-  }, []);
+  const ladyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !ladyImage) return;
+    if (!canvas) return;
 
     const context = canvas.getContext('2d');
     if (!context) return;
@@ -39,13 +30,6 @@ export function GameCanvas({ ladyPosition, dots, onCanvasClick, isGameActive, is
     // Clear canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw lady
-    if (ladyPosition) {
-      context.globalAlpha = isProcessing ? 0.5 : 1.0;
-      context.drawImage(ladyImage, ladyPosition.x, ladyPosition.y, ladyImage.width, ladyImage.height);
-      context.globalAlpha = 1.0;
-    }
-
     // Draw dots
     dots.forEach(dot => {
       context.beginPath();
@@ -57,7 +41,7 @@ export function GameCanvas({ ladyPosition, dots, onCanvasClick, isGameActive, is
       context.stroke();
     });
 
-  }, [ladyPosition, dots, ladyImage, isProcessing]);
+  }, [dots]);
 
   const handleMouseClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isGameActive) return;
@@ -73,6 +57,19 @@ export function GameCanvas({ ladyPosition, dots, onCanvasClick, isGameActive, is
 
   return (
     <div className="w-full h-full relative">
+      {ladyPosition && (
+        <div
+          ref={ladyRef}
+          style={{
+            position: 'absolute',
+            left: `${ladyPosition.x}px`,
+            top: `${ladyPosition.y}px`,
+            opacity: isProcessing ? 0.5 : 1.0,
+          }}
+        >
+          <Lady />
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         onClick={handleMouseClick}
