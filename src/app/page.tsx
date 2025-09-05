@@ -64,10 +64,10 @@ export default function Home() {
       return;
     }
 
-    setIsProcessing(true);
     setDots([]);
     setLastScore(null);
     setIsNewGame(true);
+    setIsProcessing(true);
 
     const canvasWidth = mainContentRef.current?.clientWidth || 800;
     const canvasHeight = mainContentRef.current?.clientHeight || 600;

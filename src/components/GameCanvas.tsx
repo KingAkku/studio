@@ -25,7 +25,7 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
     onCanvasClick(x, y);
   };
   
-  const showInitialOverlay = !isGameActive && !sundariPosition && dots.length === 0;
+  const showInitialOverlay = !sundariPosition && dots.length === 0;
   const showGameOverMessage = lastScore !== null && !isGameActive;
 
   return (
@@ -64,7 +64,7 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
          }}/>
       ))}
 
-      {isNewGame && <div className="absolute inset-0 eye-cover-overlay z-10" />}
+      {isNewGame && isProcessing && <div className="absolute inset-0 eye-cover-overlay z-10" />}
 
       {showInitialOverlay && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-20">
