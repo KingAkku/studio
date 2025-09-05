@@ -172,7 +172,7 @@ export function UserAuth() {
         <div className="flex flex-col gap-2">
           <Dialog open={isLoginOpen} onOpenChange={setLoginOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full" variant="secondary">
+              <Button className="w-full" variant="default">
                 <LogIn className="mr-2 h-4 w-4" /> Login with Email
               </Button>
             </DialogTrigger>
@@ -204,7 +204,7 @@ export function UserAuth() {
           </Dialog>
           <Dialog open={isSignUpOpen} onOpenChange={setSignUpOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full" variant="outline">
+              <Button className="w-full" variant="secondary">
                 <UserPlus className="mr-2 h-4 w-4" /> Sign Up with Email
               </Button>
             </DialogTrigger>
