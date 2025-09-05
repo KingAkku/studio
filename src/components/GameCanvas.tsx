@@ -13,7 +13,7 @@ interface GameCanvasProps {
   lastScore: number | null;
 }
 
-export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots, onCanvasClick, isGameActive, isProcessing, lastScore }: GameCanvasProps) {
+export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots, onCanvasClick, isGameActive, lastScore }: GameCanvasProps) {
   
   const handleMouseClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!isGameActive) return;
@@ -23,19 +23,18 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
     onCanvasClick(x, y);
   };
   
-  const showInitialOverlay = !sundariPosition && dots.length === 0 && !isProcessing;
-  const showGameOverMessage = lastScore !== null && !isGameActive && !isProcessing;
+  const showInitialOverlay = !sundariPosition && dots.length === 0;
+  const showGameOverMessage = lastScore !== null && !isGameActive;
+  const showSundari = sundariPosition && !isGameActive && dots.length > 0;
 
   return (
     <div className="w-full h-full relative" onClick={handleMouseClick}>
-      {sundariPosition && (
+      {showSundari && (
         <div
           style={{
             position: 'absolute',
             left: `${sundariPosition.x}px`,
             top: `${sundariPosition.y}px`,
-            visibility: isGameActive ? 'hidden' : 'visible',
-            opacity: isGameActive ? 0 : 1.0,
             width: sundariWidth,
             height: sundariHeight,
           }}
