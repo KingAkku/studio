@@ -45,6 +45,7 @@ export function Leaderboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [userRank, setUserRank] = useState<number | null>(null);
+  const [userPlayer, setUserPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'players'), orderBy('score', 'desc'), limit(10));
@@ -61,20 +62,17 @@ export function Leaderboard() {
       }
 
       if (user) {
-        const userInTop10 = playersData.find(p => p.id === user.id);
-        if (userInTop10) {
-            setUserRank(playersData.indexOf(userInTop10) + 1);
+        const allPlayersQuery = query(collection(db, 'players'), orderBy('score', 'desc'));
+        const allPlayersSnapshot = await getDocs(allPlayersQuery);
+        const allPlayers = allPlayersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as Player }));
+        const userIndex = allPlayers.findIndex(p => p.id === user.id);
+        
+        if (userIndex !== -1) {
+            setUserRank(userIndex + 1);
+            setUserPlayer(allPlayers[userIndex]);
         } else {
-            // Fetch all players to determine rank
-            const allPlayersQuery = query(collection(db, 'players'), orderBy('score', 'desc'));
-            const allPlayersSnapshot = await getDocs(allPlayersQuery);
-            const allPlayers = allPlayersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as Player }));
-            const userIndex = allPlayers.findIndex(p => p.id === user.id);
-            if (userIndex !== -1) {
-                setUserRank(userIndex + 1);
-            } else {
-                setUserRank(null);
-            }
+            setUserRank(null);
+            setUserPlayer(null);
         }
       }
 
@@ -90,16 +88,13 @@ export function Leaderboard() {
   }, [user]);
 
   const isUserInTop10 = user && players.some(p => p.id === user.id);
-  const topPlayers = players.slice(0, 7);
-  const otherPlayers = players.slice(7);
-
 
   if (loading) {
     return (
       <div className="space-y-3">
         {[...Array(7)].map((_, i) => (
           <div key={i} className="flex items-center gap-3 p-2">
-            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-6 w-6 rounded-full" />
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-3/4" />
             </div>
@@ -112,7 +107,7 @@ export function Leaderboard() {
   return (
     <div className="h-full overflow-y-auto">
         <ul className="space-y-2">
-          {topPlayers.map((player, index) => (
+          {players.map((player, index) => (
             <PlayerRow 
                 key={player.id} 
                 player={player} 
@@ -120,26 +115,14 @@ export function Leaderboard() {
                 isCurrentUser={user?.id === player.id}
             />
           ))}
-          {otherPlayers.length > 0 && (
-             <div className="h-full overflow-y-auto">
-                {otherPlayers.map((player, index) => (
-                    <PlayerRow 
-                        key={player.id} 
-                        player={player} 
-                        rank={index + 8}
-                        isCurrentUser={user?.id === player.id}
-                    />
-                ))}
-             </div>
-          )}
-           {user && !isUserInTop10 && userRank !== null && (
+           {userPlayer && !isUserInTop10 && userRank !== null && (
             <>
                 <li className="flex justify-center items-center my-2">
                     <div className="w-full border-t border-dashed border-border"></div>
                     <span className="mx-2 text-muted-foreground text-xs">...</span>
                     <div className="w-full border-t border-dashed border-border"></div>
                 </li>
-                <PlayerRow player={user} rank={userRank} isCurrentUser={true} />
+                <PlayerRow player={userPlayer} rank={userRank} isCurrentUser={true} />
             </>
            )}
         </ul>
