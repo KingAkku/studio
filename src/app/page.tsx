@@ -66,8 +66,7 @@ export default function Home() {
 
     setDots([]);
     setLastScore(null);
-    setIsNewGame(true);
-    setIsProcessing(true);
+    setIsProcessing(true); // Start processing for hiding
 
     const canvasWidth = mainContentRef.current?.clientWidth || 800;
     const canvasHeight = mainContentRef.current?.clientHeight || 600;
@@ -81,15 +80,22 @@ export default function Home() {
       consecutiveMisses: consecutiveMisses,
     });
 
-    setSundariPosition(newPosition);
+    // If it's the very first game, do the eye cover animation
+    if (isNewGame) {
+      setSundariPosition(newPosition);
+      setTimeout(() => {
+          setIsGameActive(true);
+          setIsNewGame(false);
+          setIsProcessing(false);
+      }, 1500);
+    } else {
+      // For subsequent games, just hide and show quickly
+      setSundariPosition(newPosition);
+      setIsProcessing(false); // Done processing
+      setIsGameActive(true);
+    }
 
-    setTimeout(() => {
-        setIsGameActive(true);
-        setIsNewGame(false);
-        setIsProcessing(false);
-    }, 1500);
-
-  }, [user, isGuest, toast, consecutiveMisses, getResponsiveSundariSize]);
+  }, [user, isGuest, toast, consecutiveMisses, getResponsiveSundariSize, isNewGame]);
   
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -240,5 +246,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

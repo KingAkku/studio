@@ -26,7 +26,7 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
   };
   
   const showInitialOverlay = !sundariPosition && dots.length === 0;
-  const showGameOverMessage = lastScore !== null && !isGameActive;
+  const showGameOverMessage = lastScore !== null && !isGameActive && !isProcessing;
 
   return (
     <div className="w-full h-full relative" onClick={handleMouseClick}>
@@ -37,7 +37,7 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
             left: `${sundariPosition.x}px`,
             top: `${sundariPosition.y}px`,
             visibility: isGameActive ? 'hidden' : 'visible',
-            opacity: isProcessing || isGameActive ? 0 : 1.0,
+            opacity: isGameActive ? 0 : 1.0,
             width: sundariWidth,
             height: sundariHeight,
           }}
@@ -94,5 +94,3 @@ export function GameCanvas({ sundariPosition, sundariWidth, sundariHeight, dots,
     </div>
   );
 }
-
-    
