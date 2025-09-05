@@ -8,25 +8,23 @@ import { Leaderboard } from '@/components/Leaderboard';
 import { UserAuth } from '@/components/UserAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { updateUserScore } from '@/lib/firestore';
-import type { GameRound } from '@/types';
-import { adjustLadyPosition } from '@/ai/flows/adaptive-lady-movement';
 import { useToast } from '@/hooks/use-toast';
 import { Crown } from 'lucide-react';
 
-const LADY_IMAGE_WIDTH = 100;
-const LADY_IMAGE_HEIGHT = 150;
-const LADY_FOREHEAD_POS = { x: 50, y: 30 }; // Relative to image top-left
+const SUNDARI_IMAGE_WIDTH = 100;
+const SUNDARI_IMAGE_HEIGHT = 150;
+const SUNDARI_FOREHEAD_POS = { x: 50, y: 30 }; // Relative to image top-left
 
 export default function Home() {
   const { user, loading, isGuest } = useAuth();
   const { toast } = useToast();
-  const [ladyPosition, setLadyPosition] = useState<{ x: number; y: number } | null>(null);
+  const [sundariPosition, setSundariPosition] = useState<{ x: number; y: number } | null>(null);
   const [dots, setDots] = useState<{ x: number; y: number; score: number }[]>([]);
-  const [gameHistory, setGameHistory] = useState<GameRound[]>([]);
   const [isGameActive, setIsGameActive] = useState(false);
+  const [isNewGame, setIsNewGame] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
-  
+
   const handleNewGame = useCallback(async () => {
     if (!user && !isGuest) {
       toast({
@@ -36,103 +34,80 @@ export default function Home() {
       });
       return;
     }
-    
+
     setIsProcessing(true);
     setDots([]);
-    setIsGameActive(true);
+    setIsNewGame(true);
 
     const canvasWidth = mainContentRef.current?.clientWidth || 800;
     const canvasHeight = mainContentRef.current?.clientHeight || 600;
 
-    try {
-      if (gameHistory.length > 0) {
-        const { newLadyX, newLadyY } = await adjustLadyPosition({
-          gameHistory,
-          canvasWidth,
-          canvasHeight,
-        });
-        setLadyPosition({ 
-          x: Math.min(newLadyX, canvasWidth - LADY_IMAGE_WIDTH), 
-          y: Math.min(newLadyY, canvasHeight - LADY_IMAGE_HEIGHT) 
-        });
-      } else {
-        // First game, random position
-        const x = Math.random() * (canvasWidth - LADY_IMAGE_WIDTH);
-        const y = Math.random() * (canvasHeight - LADY_IMAGE_HEIGHT);
-        setLadyPosition({ x, y });
-      }
-    } catch (error) {
-      console.error("AI Error, falling back to random:", error);
-      const x = Math.random() * (canvasWidth - LADY_IMAGE_WIDTH);
-      const y = Math.random() * (canvasHeight - LADY_IMAGE_HEIGHT);
-      setLadyPosition({ x, y });
-      toast({
-        variant: "destructive",
-        title: "AI Error",
-        description: "Could not get AI position, using random placement.",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [user, isGuest, gameHistory, toast]);
+    // First game, random position
+    const x = Math.random() * (canvasWidth - SUNDARI_IMAGE_WIDTH);
+    const y = Math.random() * (canvasHeight - SUNDARI_IMAGE_HEIGHT);
+    setSundariPosition({ x, y });
+
+    // Allow overlay effect to play
+    setTimeout(() => {
+        setIsGameActive(true);
+        setIsNewGame(false);
+        setIsProcessing(false);
+    }, 1500); // Duration of the overlay animation
+
+  }, [user, isGuest, toast]);
 
   const handleCanvasClick = (x: number, y: number) => {
-    if (!isGameActive || !ladyPosition || isProcessing) return;
+    if (!isGameActive || !sundariPosition || isProcessing || dots.length > 0) return;
 
-    const foreheadX = ladyPosition.x + LADY_FOREHEAD_POS.x;
-    const foreheadY = ladyPosition.y + LADY_FOREHEAD_POS.y;
+    const foreheadX = sundariPosition.x + SUNDARI_FOREHEAD_POS.x;
+    const foreheadY = sundariPosition.y + SUNDARI_FOREHEAD_POS.y;
 
     const distance = Math.sqrt(Math.pow(x - foreheadX, 2) + Math.pow(y - foreheadY, 2));
 
     let score = 0;
-    const clickIsOnImage = x >= ladyPosition.x && x <= ladyPosition.x + LADY_IMAGE_WIDTH && y >= ladyPosition.y && y <= ladyPosition.y + LADY_IMAGE_HEIGHT;
-
+    const clickIsOnImage = x >= sundariPosition.x && x <= sundariPosition.x + SUNDARI_IMAGE_WIDTH && y >= sundariPosition.y && y <= sundariPosition.y + SUNDARI_IMAGE_HEIGHT;
+    
     if (clickIsOnImage) {
-      if (distance <= 5) score = 10;
-      else if (distance <= 15) score = 7;
-      else if (distance <= 30) score = 4;
-      else if (distance <= 50) score = 2;
-      else score = 1;
+        score = 10; // Base score for hitting the image
+        if (distance <= 5) score += 10; // Bonus for forehead
+        else if (distance <= 15) score += 7;
+        else if (distance <= 30) score += 4;
+        else if (distance <= 50) score += 2;
     }
+
 
     setDots(prevDots => [...prevDots, { x, y, score }]);
+    setIsGameActive(false);
 
-    if (user && score > 0) {
-      const newTotalScore = (user.score || 0) + score;
-      updateUserScore(user.id, newTotalScore);
-      toast({
-        title: `You scored ${score} points!`,
-        description: `Your new total is ${newTotalScore}.`,
-      });
-    } else if (isGuest && score > 0) {
+    if (score > 0) {
+      if (user) {
+        const newTotalScore = (user.score || 0) + score;
+        updateUserScore(user.id, newTotalScore);
         toast({
-            title: `You scored ${score} points!`,
-            description: "Log in to save your score.",
+          title: `You scored ${score} points!`,
+          description: `Your new total is ${newTotalScore}. Click 'New Game' to play again.`,
         });
-    } else if (score === 0) {
+      } else if (isGuest) {
+          toast({
+              title: `You scored ${score} points!`,
+              description: "Log in to save your score. Click 'New Game' to play again.",
+          });
+      }
+    } else {
         toast({
+            variant: 'destructive',
             title: "Miss!",
-            description: "Try to get closer to the lady's forehead.",
+            description: "You missed the target. Click 'New Game' to try again.",
         });
     }
-    
-    const newRound: GameRound = {
-      clickX: x,
-      clickY: y,
-      ladyX: ladyPosition.x,
-      ladyY: ladyPosition.y,
-      score: score,
-    };
-    setGameHistory(prev => [...prev, newRound]);
-    setIsGameActive(false); // End round after one click
   };
 
   return (
     <div className="flex h-screen bg-background font-body">
       <aside className="w-[320px] flex flex-col border-r border-border p-4 shadow-lg bg-card/80">
         <header className="mb-6 text-center">
-          <h1 className="font-headline text-4xl font-bold text-primary">Dotty Dame</h1>
-          <p className="text-muted-foreground">Aim for the forehead!</p>
+          <h1 className="font-headline text-4xl font-bold text-primary">Sundari</h1>
+          <p className="text-muted-foreground">Find the hidden lady.</p>
         </header>
 
         <div className="mb-4">
@@ -151,24 +126,25 @@ export default function Home() {
         </Card>
 
         <div className="mt-4">
-          <Button 
-            className="w-full" 
+          <Button
+            className="w-full"
             size="lg"
-            onClick={handleNewGame} 
-            disabled={isProcessing || loading}
+            onClick={handleNewGame}
+            disabled={isProcessing || loading || isGameActive}
           >
-            {isProcessing ? 'Loading...' : 'New Game'}
+            {isProcessing ? 'Starting...' : 'New Game'}
           </Button>
         </div>
       </aside>
 
-      <main ref={mainContentRef} className="flex-1 relative">
-        <GameCanvas 
-          ladyPosition={ladyPosition}
+      <main ref={mainContentRef} className="flex-1 relative bg-black">
+        <GameCanvas
+          sundariPosition={sundariPosition}
           dots={dots}
           onCanvasClick={handleCanvasClick}
           isGameActive={isGameActive}
           isProcessing={isProcessing}
+          isNewGame={isNewGame}
         />
       </main>
     </div>
