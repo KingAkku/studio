@@ -90,11 +90,14 @@ export function Leaderboard() {
   }, [user]);
 
   const isUserInTop10 = user && players.some(p => p.id === user.id);
+  const topPlayers = players.slice(0, 7);
+  const otherPlayers = players.slice(7);
+
 
   if (loading) {
     return (
       <div className="space-y-3">
-        {[...Array(10)].map((_, i) => (
+        {[...Array(7)].map((_, i) => (
           <div key={i} className="flex items-center gap-3 p-2">
             <Skeleton className="h-8 w-8 rounded-full" />
             <div className="flex-1 space-y-2">
@@ -107,25 +110,39 @@ export function Leaderboard() {
   }
 
   return (
-    <ul className="space-y-2">
-      {players.map((player, index) => (
-        <PlayerRow 
-            key={player.id} 
-            player={player} 
-            rank={index + 1}
-            isCurrentUser={user?.id === player.id}
-        />
-      ))}
-       {user && !isUserInTop10 && userRank !== null && (
-        <>
-            <li className="flex justify-center items-center my-2">
-                <div className="w-full border-t border-dashed border-border"></div>
-                <span className="mx-2 text-muted-foreground text-xs">...</span>
-                <div className="w-full border-t border-dashed border-border"></div>
-            </li>
-            <PlayerRow player={user} rank={userRank} isCurrentUser={true} />
-        </>
-       )}
-    </ul>
+    <div className="h-full overflow-y-auto">
+        <ul className="space-y-2">
+          {topPlayers.map((player, index) => (
+            <PlayerRow 
+                key={player.id} 
+                player={player} 
+                rank={index + 1}
+                isCurrentUser={user?.id === player.id}
+            />
+          ))}
+          {otherPlayers.length > 0 && (
+             <div className="h-full overflow-y-auto">
+                {otherPlayers.map((player, index) => (
+                    <PlayerRow 
+                        key={player.id} 
+                        player={player} 
+                        rank={index + 8}
+                        isCurrentUser={user?.id === player.id}
+                    />
+                ))}
+             </div>
+          )}
+           {user && !isUserInTop10 && userRank !== null && (
+            <>
+                <li className="flex justify-center items-center my-2">
+                    <div className="w-full border-t border-dashed border-border"></div>
+                    <span className="mx-2 text-muted-foreground text-xs">...</span>
+                    <div className="w-full border-t border-dashed border-border"></div>
+                </li>
+                <PlayerRow player={user} rank={userRank} isCurrentUser={true} />
+            </>
+           )}
+        </ul>
+    </div>
   );
 }
