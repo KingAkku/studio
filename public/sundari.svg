@@ -1,8 +1,4 @@
-import React from 'react';
-
-export function Sundari() {
-  return (
-    <svg
+<svg
       width="100"
       height="150"
       viewBox="0 0 100 150"
@@ -13,12 +9,12 @@ export function Sundari() {
         {/* Face */}
         <path
           d="M20 50 C 20 20, 80 20, 80 50 C 95 80, 85 130, 70 145 C 50 155, 30 155, 10 145 C -5 130, 5 80, 20 50 Z"
-          fill="#f4a278" // A warm skin tone
+          fill="#f4a278" 
         />
         {/* Hair */}
         <path
           d="M15 50 C 10 20, 90 20, 85 50 C 100 80, 90 140, 75 150 L 25 150 C 10 140, 0 80, 15 50 Z"
-          fill="#2C1608" // Dark brown hair
+          fill="#2C1608"
         />
 
         {/* Eyes */}
@@ -56,5 +52,3 @@ export function Sundari() {
         <path d="M80 85 L 80 95 L 78 95 L 82 95 Z" stroke="#ffd700" strokeWidth="1" fill="#ffd700" />
       </g>
     </svg>
-  );
-}

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Sundari } from './Sundari';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 interface GameCanvasProps {
@@ -73,7 +73,12 @@ export function GameCanvas({ sundariPosition, dots, onCanvasClick, isGameActive,
             opacity: isProcessing || isGameActive ? 0 : 1.0,
           }}
         >
-          <Sundari />
+          <Image 
+            src="/sundari.svg"
+            alt="Sundari"
+            width={100}
+            height={150}
+          />
         </div>
       )}
       
