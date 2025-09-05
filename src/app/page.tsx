@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { updateUserScore } from '@/lib/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Crown } from 'lucide-react';
+import { adaptiveLadyMovement } from '@/ai/flows/adaptive-lady-movement';
 
 const SUNDARI_IMAGE_WIDTH = 100;
 const SUNDARI_IMAGE_HEIGHT = 150;
@@ -25,6 +26,7 @@ export default function Home() {
   const [isNewGame, setIsNewGame] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastScore, setLastScore] = useState<number | null>(null);
+  const [consecutiveMisses, setConsecutiveMisses] = useState(0);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
   const handleNewGame = useCallback(async () => {
@@ -45,9 +47,15 @@ export default function Home() {
     const canvasWidth = mainContentRef.current?.clientWidth || 800;
     const canvasHeight = mainContentRef.current?.clientHeight || 600;
 
-    const x = Math.random() * (canvasWidth - SUNDARI_IMAGE_WIDTH);
-    const y = Math.random() * (canvasHeight - SUNDARI_IMAGE_HEIGHT);
-    setSundariPosition({ x, y });
+    const newPosition = await adaptiveLadyMovement({
+      canvasWidth,
+      canvasHeight,
+      imageWidth: SUNDARI_IMAGE_WIDTH,
+      imageHeight: SUNDARI_IMAGE_HEIGHT,
+      consecutiveMisses: consecutiveMisses,
+    });
+
+    setSundariPosition(newPosition);
 
     setTimeout(() => {
         setIsGameActive(true);
@@ -55,7 +63,7 @@ export default function Home() {
         setIsProcessing(false);
     }, 1500);
 
-  }, [user, isGuest, toast]);
+  }, [user, isGuest, toast, consecutiveMisses]);
   
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -90,13 +98,19 @@ export default function Home() {
         else if (distance <= 50) score += 2;
     }
 
+    if (score > 0) {
+      setConsecutiveMisses(0);
+      if (user) {
+        updateUserScore(user.id, score);
+      }
+    } else {
+      setConsecutiveMisses(prev => prev + 1);
+    }
+
+
     setDots(prevDots => [...prevDots, { x, y, score }]);
     setLastScore(score);
     setIsGameActive(false);
-
-    if (user && score > 0) {
-      updateUserScore(user.id, score);
-    }
   };
 
   return (
