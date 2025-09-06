@@ -1,4 +1,0 @@
-# A minimal configuration file for build system compatibility.
-# Settings for Vercel should be managed in the Vercel dashboard.
-run:
-  cmd: npm run start
