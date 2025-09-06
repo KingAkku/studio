@@ -13,45 +13,42 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-let app: FirebaseApp;
+// This function ensures that we initialize the app only once.
+const getFirebaseApp = (): FirebaseApp => {
+  if (getApps().length === 0) {
+    if (!firebaseConfig.apiKey) {
+      throw new Error("Firebase API key is not set. Please check your environment variables.");
+    }
+    const app = initializeApp(firebaseConfig);
+    // Conditionally add measurementId if it exists to avoid errors.
+    if (firebaseConfig.measurementId) {
+        app.options.measurementId = firebaseConfig.measurementId;
+    }
+    return app;
+  }
+  return getApp();
+};
+
 let auth: Auth;
 let db: Firestore;
 let googleAuthProvider: GoogleAuthProvider;
 
-function getFirebaseApp(): FirebaseApp {
-  if (getApps().length === 0) {
-    // This check is crucial for the Vercel build process.
-    // If the keys are not available during the build, we don't initialize.
-    if (!firebaseConfig.apiKey) {
-      throw new Error("Firebase API key is not set. Please check your environment variables.");
-    }
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApp();
-  }
-  return app;
-}
-
-
 export function getFirebaseAuth() {
   if (!auth) {
-    const app = getFirebaseApp();
-    auth = getAuth(app);
+    auth = getAuth(getFirebaseApp());
   }
   return auth;
 }
 
 export function getFirebaseDb() {
   if (!db) {
-    const app = getFirebaseApp();
-    db = getFirestore(app);
+    db = getFirestore(getFirebaseApp());
   }
   return db;
 }
 
 export function getGoogleAuthProvider() {
     if (!googleAuthProvider) {
-        getFirebaseApp(); // ensures app is initialized
         googleAuthProvider = new GoogleAuthProvider();
     }
     return googleAuthProvider;
