@@ -44,9 +44,9 @@ export function Leaderboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
-  const db = getFirebaseDb();
-
+  
   useEffect(() => {
+    const db = getFirebaseDb();
     const q = query(collection(db, 'players'), orderBy('score', 'desc'));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -83,7 +83,7 @@ export function Leaderboard() {
     });
 
     return () => unsubscribe();
-  }, [user, isExpanded, db]);
+  }, [user, isExpanded]);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);

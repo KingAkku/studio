@@ -20,10 +20,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Player | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
-  const auth = getFirebaseAuth();
-  const db = getFirebaseDb();
-
+  
   useEffect(() => {
+    const auth = getFirebaseAuth();
+    const db = getFirebaseDb();
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
       setIsGuest(false); // Reset guest state on auth change
       if (firebaseUser) {
@@ -59,10 +59,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribeAuth();
-  }, [auth, db]);
+  }, []);
 
   const setGuest = (isGuest: boolean) => {
     if (isGuest) {
+      const auth = getFirebaseAuth();
       if(auth.currentUser) {
         signOut(auth);
       }

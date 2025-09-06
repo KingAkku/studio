@@ -35,9 +35,6 @@ import { updatePlayerName } from '@/lib/firestore';
 
 export function UserAuth() {
   const { user, loading, isGuest, setGuest } = useAuth();
-  const auth = getFirebaseAuth();
-  const db = getFirebaseDb();
-  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUpOpen, setSignUpOpen] = useState(false);
@@ -92,6 +89,7 @@ export function UserAuth() {
 
   const handleEmailLogin = async () => {
     try {
+      const auth = getFirebaseAuth();
       await signInWithEmailAndPassword(auth, email, password);
       setLoginOpen(false);
     } catch (error) {
@@ -101,6 +99,8 @@ export function UserAuth() {
   
   const handleSignUp = async () => {
     try {
+      const auth = getFirebaseAuth();
+      const db = getFirebaseDb();
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const user = result.user;
       
@@ -123,6 +123,7 @@ export function UserAuth() {
 
 
   const handleSignOut = () => {
+    const auth = getFirebaseAuth();
     signOut(auth);
     setGuest(false);
   };

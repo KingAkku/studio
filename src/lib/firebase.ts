@@ -18,46 +18,41 @@ let auth: Auth;
 let db: Firestore;
 let googleAuthProvider: GoogleAuthProvider;
 
-function initializeFirebase() {
-  if (!getApps().length) {
+function getFirebaseApp(): FirebaseApp {
+  if (getApps().length === 0) {
+    // This check is crucial for the Vercel build process.
+    // If the keys are not available during the build, we don't initialize.
     if (!firebaseConfig.apiKey) {
-      // This check is crucial for the Vercel build process.
-      // If the keys are not available during the build, we don't initialize.
-      // The client-side will have the env vars and will initialize correctly.
-      return;
+      throw new Error("Firebase API key is not set. Please check your environment variables.");
     }
     app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    googleAuthProvider = new GoogleAuthProvider();
   } else {
     app = getApp();
-    auth = getAuth(app);
-    db = getFirestore(app);
-    googleAuthProvider = new GoogleAuthProvider();
   }
+  return app;
 }
 
-// Call the function to initialize Firebase services.
-initializeFirebase();
 
 export function getFirebaseAuth() {
   if (!auth) {
-    initializeFirebase(); // Re-initialize if it wasn't available (e.g., server build)
+    const app = getFirebaseApp();
+    auth = getAuth(app);
   }
   return auth;
 }
 
 export function getFirebaseDb() {
   if (!db) {
-    initializeFirebase();
+    const app = getFirebaseApp();
+    db = getFirestore(app);
   }
   return db;
 }
 
 export function getGoogleAuthProvider() {
     if (!googleAuthProvider) {
-        initializeFirebase();
+        getFirebaseApp(); // ensures app is initialized
+        googleAuthProvider = new GoogleAuthProvider();
     }
     return googleAuthProvider;
 }
