@@ -4,33 +4,36 @@ import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { firebaseConfig } from "./firebase-config";
 
-// This function ensures that we initialize the app only once.
 let app: FirebaseApp;
 let auth: Auth;
 let db: Firestore;
 
-function getFirebaseApp() {
-  if (app) return app;
-
+// This function ensures that we initialize the app only once.
+function initializeFirebaseApp() {
   if (getApps().length > 0) {
-    app = getApp();
-  } else {
-    if (!firebaseConfig.apiKey) {
-      throw new Error("Firebase API key is not set. Please check your environment variables.");
-    }
-    app = initializeApp(firebaseConfig);
+    return getApp();
   }
-  return app;
+
+  // Check if the API key is provided. This is crucial for client-side rendering.
+  if (!firebaseConfig.apiKey) {
+    throw new Error("Firebase API key is not set. Please check your environment variables.");
+  }
+  
+  const newApp = initializeApp(firebaseConfig);
+
+  return newApp;
 }
 
+// Initialize the app
+app = initializeFirebaseApp();
+auth = getAuth(app);
+db = getFirestore(app);
+
+
 export function getFirebaseAuth() {
-  if (auth) return auth;
-  auth = getAuth(getFirebaseApp());
   return auth;
 }
 
 export function getFirebaseDb() {
-  if (db) return db;
-  db = getFirestore(getFirebaseApp());
   return db;
 }
