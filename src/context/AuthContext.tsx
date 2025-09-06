@@ -33,16 +33,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const playerData = docSnapshot.data();
             setUser({
               id: firebaseUser.uid,
-              name: playerData.name,
-              email: playerData.email,
+              name: playerData.name || '',
+              email: playerData.email || '',
               score: playerData.score,
             });
           } else {
             // This case might happen if doc creation is delayed
             setUser({
               id: firebaseUser.uid,
-              name: firebaseUser.displayName,
-              email: firebaseUser.email,
+              name: firebaseUser.displayName || '',
+              email: firebaseUser.email || '',
               score: 0,
             });
           }
