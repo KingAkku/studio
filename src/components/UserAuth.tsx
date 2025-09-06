@@ -3,9 +3,9 @@
 
 import React, { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getAuth, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db, googleProvider } from '@/lib/firebase';
+import { getFirebaseAuth, getFirebaseDb, getGoogleAuthProvider } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -35,7 +35,8 @@ import { updatePlayerName } from '@/lib/firestore';
 
 export function UserAuth() {
   const { user, loading, isGuest, setGuest } = useAuth();
-  const auth = getAuth();
+  const auth = getFirebaseAuth();
+  const db = getFirebaseDb();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

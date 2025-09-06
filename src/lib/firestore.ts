@@ -1,9 +1,10 @@
 
 import { doc, setDoc, increment } from 'firebase/firestore';
-import { db } from './firebase';
+import { getFirebaseDb } from './firebase';
 
 export const updateUserScore = async (userId: string, scoreGained: number) => {
   if (!userId || scoreGained <= 0) return;
+  const db = getFirebaseDb();
   const playerDocRef = doc(db, 'players', userId);
   try {
     // Use setDoc with merge: true to create or update the document.
@@ -18,6 +19,7 @@ export const updateUserScore = async (userId: string, scoreGained: number) => {
 
 export const updatePlayerName = async (userId: string, newName: string) => {
   if (!userId || !newName) return;
+  const db = getFirebaseDb();
   const playerDocRef = doc(db, 'players', userId);
   try {
     // Use setDoc with merge: true to create or update the document.

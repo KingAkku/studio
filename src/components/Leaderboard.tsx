@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
+import { getFirebaseDb } from '@/lib/firebase';
 import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import type { Player } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,6 +44,7 @@ export function Leaderboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
+  const db = getFirebaseDb();
 
   useEffect(() => {
     const q = query(collection(db, 'players'), orderBy('score', 'desc'));
@@ -82,7 +83,7 @@ export function Leaderboard() {
     });
 
     return () => unsubscribe();
-  }, [user, isExpanded]);
+  }, [user, isExpanded, db]);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
