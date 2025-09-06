@@ -22,8 +22,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isGuest, setIsGuest] = useState(false);
   
   useEffect(() => {
+    // Firebase initialization is now deferred to the browser,
+    // so we get the instances inside useEffect.
     const auth = getFirebaseAuth();
+    if (!auth) {
+      // If auth is not available (e.g., on server), we can't do anything.
+      setLoading(false);
+      return;
+    }
+    
     const db = getFirebaseDb();
+    
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
       setIsGuest(false); // Reset guest state on auth change
       if (firebaseUser) {
@@ -48,6 +57,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             });
           }
           setLoading(false);
+        }, (error) => {
+          console.error("Error on snapshot:", error);
+          setLoading(false);
         });
 
         // Return the snapshot listener's unsubscribe function to be called on cleanup
@@ -56,6 +68,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
         setLoading(false);
       }
+    }, (error) => {
+      console.error("Error on auth state change:", error);
+      setLoading(false);
     });
 
     return () => unsubscribeAuth();
@@ -64,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const setGuest = (isGuest: boolean) => {
     if (isGuest) {
       const auth = getFirebaseAuth();
-      if(auth.currentUser) {
+      if(auth && auth.currentUser) {
         signOut(auth);
       }
       setUser(null);
