@@ -1,7 +1,7 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, Auth, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,21 +13,51 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-function getFirebaseApp(): FirebaseApp {
-    if (!getApps().length && firebaseConfig.apiKey) {
-        return initializeApp(firebaseConfig);
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
+let googleAuthProvider: GoogleAuthProvider;
+
+function initializeFirebase() {
+  if (!getApps().length) {
+    if (!firebaseConfig.apiKey) {
+      // This check is crucial for the Vercel build process.
+      // If the keys are not available during the build, we don't initialize.
+      // The client-side will have the env vars and will initialize correctly.
+      return;
     }
-    return getApp();
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    googleAuthProvider = new GoogleAuthProvider();
+  } else {
+    app = getApp();
+    auth = getAuth(app);
+    db = getFirestore(app);
+    googleAuthProvider = new GoogleAuthProvider();
+  }
 }
 
+// Call the function to initialize Firebase services.
+initializeFirebase();
+
 export function getFirebaseAuth() {
-  return getAuth(getFirebaseApp());
+  if (!auth) {
+    initializeFirebase(); // Re-initialize if it wasn't available (e.g., server build)
+  }
+  return auth;
 }
 
 export function getFirebaseDb() {
-  return getFirestore(getFirebaseApp());
+  if (!db) {
+    initializeFirebase();
+  }
+  return db;
 }
 
 export function getGoogleAuthProvider() {
-  return new GoogleAuthProvider();
+    if (!googleAuthProvider) {
+        initializeFirebase();
+    }
+    return googleAuthProvider;
 }
