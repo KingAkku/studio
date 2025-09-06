@@ -1,13 +1,13 @@
 
 "use client"
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { AuthError, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { getFirebaseAuth, getFirebaseDb, getGoogleAuthProvider } from '@/lib/firebase';
+import { getFirebaseAuth, getFirebaseDb } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogIn, LogOut, UserPlus, Ghost, User as UserIcon } from 'lucide-react';
+import { Ghost, LogIn, LogOut, User as UserIcon, UserPlus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { updatePlayerName } from '@/lib/firestore';
 
@@ -41,6 +40,7 @@ export function UserAuth() {
   const [isLoginOpen, setLoginOpen] = useState(false);
   const [isUsernameModalOpen, setUsernameModalOpen] = useState(false);
   const [username, setUsername] = useState('');
+  const { toast } = useToast();
 
 
   useEffect(() => {
