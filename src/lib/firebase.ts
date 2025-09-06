@@ -1,9 +1,8 @@
 
-import { initializeApp, getApps, getApp, FirebaseOptions } from "firebase/app";
+import { initializeApp, getApps, getApp, FirebaseOptions, FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Your web app's Firebase configuration
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -13,14 +12,17 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Conditionally add the measurement ID if it exists.
 if (process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID) {
   firebaseConfig.measurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID;
 }
 
+let app: FirebaseApp;
+if (getApps().length === 0 && firebaseConfig.apiKey) {
+    app = initializeApp(firebaseConfig);
+} else {
+    app = getApp();
+}
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 const auth = getAuth(app);
 const db = getFirestore(app);
