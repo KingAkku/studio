@@ -14,6 +14,7 @@ import { Crown, Gamepad2, MessageSquare, User as UserIcon } from 'lucide-react';
 import { adaptiveLadyMovement } from '@/ai/flows/adaptive-lady-movement';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
 
 const BASE_SUNDARI_WIDTH = 100;
 const BASE_SUNDARI_HEIGHT = 150;
@@ -202,11 +203,26 @@ export default function Home() {
             <span className="text-xs">Profile</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="h-4/5">
+        <SheetContent side="bottom" className="h-4/5 flex flex-col">
           <SheetHeader>
             <SheetTitle>Profile</SheetTitle>
           </SheetHeader>
-          <div className="p-4"><UserAuth/></div>
+          <div className="p-4 flex-grow">
+            <UserAuth/>
+          </div>
+          <Separator />
+           <div className="p-4">
+             <Button
+              className="w-full"
+              variant="outline"
+              asChild
+            >
+              <a href="mailto:Alokak477@gmail.com">
+                <MessageSquare />
+                Send Feedback
+              </a>
+            </Button>
+           </div>
         </SheetContent>
       </Sheet>
 
