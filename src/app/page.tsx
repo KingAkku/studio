@@ -184,7 +184,7 @@ export default function Home() {
           variant="outline"
           asChild
         >
-          <a href="mailto:feedback@example.com">
+          <a href="mailto:Alokak477@gmail.com">
             <MessageSquare />
             Send Feedback
           </a>
