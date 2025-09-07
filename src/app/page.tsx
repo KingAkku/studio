@@ -10,7 +10,7 @@ import { UserAuth } from '@/components/UserAuth';
 import { useAuth } from '@/hooks/useAuth';
 import { updateUserScore } from '@/lib/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { Crown, Gamepad2, User as UserIcon } from 'lucide-react';
+import { Crown, Gamepad2, MessageSquare, User as UserIcon } from 'lucide-react';
 import { adaptiveLadyMovement } from '@/ai/flows/adaptive-lady-movement';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -170,7 +170,7 @@ export default function Home() {
         </CardContent>
       </Card>
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col gap-2">
         <Button
           className="w-full"
           size="lg"
@@ -178,6 +178,16 @@ export default function Home() {
           disabled={isButtonDisabled}
         >
           {gameState === 'HIDING' ? 'Starting...' : 'New Game'}
+        </Button>
+        <Button
+          className="w-full"
+          variant="outline"
+          asChild
+        >
+          <a href="mailto:feedback@example.com">
+            <MessageSquare />
+            Send Feedback
+          </a>
         </Button>
       </div>
     </aside>
@@ -245,5 +255,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

@@ -38,56 +38,38 @@ const PlayerRow = ({ player, rank, isCurrentUser }: { player: Player; rank: numb
 );
 
 export function Leaderboard() {
-  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
-  const [topPlayers, setTopPlayers] = useState<Player[]>([]);
-  const [currentUserData, setCurrentUserData] = useState<{ player: Player; rank: number } | null>(null);
+  const [players, setPlayers] = useState<Player[]>([]);
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   
   useEffect(() => {
     const db = getFirebaseDb();
+    if (!db) {
+      setPlayers(dummyPlayers);
+      setLoading(false);
+      return;
+    }
     const q = query(collection(db, 'players'), orderBy('score', 'desc'));
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const allPlayersData: Player[] = [];
+      const playersData: Player[] = [];
       querySnapshot.forEach((doc) => {
-        allPlayersData.push({ id: doc.id, ...doc.data() } as Player);
+        playersData.push({ id: doc.id, ...doc.data() } as Player);
       });
 
-      setAllPlayers(allPlayersData);
-
-      if (allPlayersData.length > 0) {
-        setTopPlayers(allPlayersData.slice(0, isExpanded ? 10 : 6));
-
-        if (user) {
-          const rank = allPlayersData.findIndex(p => p.id === user.id);
-          if (rank !== -1) {
-            setCurrentUserData({ player: allPlayersData[rank], rank: rank + 1 });
-          } else {
-            setCurrentUserData(null);
-          }
-        } else {
-          setCurrentUserData(null);
-        }
-      } else {
-        setTopPlayers(dummyPlayers.slice(0, isExpanded ? 10 : 6));
-        setCurrentUserData(null);
-      }
+      setPlayers(playersData.length > 0 ? playersData : dummyPlayers);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching leaderboard: ", error);
-      setTopPlayers(dummyPlayers.slice(0, isExpanded ? 10 : 6));
-      setCurrentUserData(null);
+      setPlayers(dummyPlayers);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user, isExpanded]);
+  }, []);
 
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
+  const toggleExpanded = () => setIsExpanded(!isExpanded);
 
   if (loading) {
     return (
@@ -104,7 +86,18 @@ export function Leaderboard() {
     );
   }
 
-  const currentUserInTop = topPlayers.some(p => p.id === user?.id);
+  const visiblePlayerCount = isExpanded ? players.length : 10;
+  const topPlayers = players.slice(0, visiblePlayerCount);
+  
+  let currentUserData: { player: Player; rank: number } | null = null;
+  if (user) {
+    const rank = players.findIndex(p => p.id === user.id);
+    if (rank !== -1) {
+      currentUserData = { player: players[rank], rank: rank + 1 };
+    }
+  }
+  
+  const isCurrentUserInTop = topPlayers.some(p => p.id === user?.id);
 
   return (
     <div className="h-full px-2 flex flex-col">
@@ -121,21 +114,15 @@ export function Leaderboard() {
         
         <div className="flex-grow" />
         
-        <div className="py-2 text-center">
-          {isExpanded ? (
+        {players.length > 10 && (
+          <div className="py-2 text-center">
             <Button variant="link" size="sm" onClick={toggleExpanded}>
-              Go back to top
+              {isExpanded ? 'Show Less' : 'Show More'}
             </Button>
-          ) : (
-            allPlayers.length > 6 && (
-              <Button variant="link" size="sm" onClick={toggleExpanded}>
-                See more
-              </Button>
-            )
-          )}
-        </div>
+          </div>
+        )}
         
-        {currentUserData && !currentUserInTop && (
+        {currentUserData && !isCurrentUserInTop && (
           <div className="mt-auto pt-2 border-t border-border">
              <PlayerRow 
                 key={currentUserData.player.id} 
